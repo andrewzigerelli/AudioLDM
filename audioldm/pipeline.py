@@ -13,7 +13,7 @@ from audioldm.latent_diffusion.ddim import DDIMSampler
 from einops import repeat
 import os
 
-def auto_batch(text_list, waveform=None):
+def auto_batch(text_list, waveform=None, fbank=None):
     batchsize = len(text_list)
 
     if(fbank is None):
