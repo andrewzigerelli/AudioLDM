@@ -13,14 +13,33 @@ from audioldm.latent_diffusion.ddim import DDIMSampler
 from einops import repeat
 import os
 
-def auto_batch(text_list):
+def auto_batch(text_list, waveform=None):
     batchsize = len(text_list)
-    #fbank = torch.zeros((batchsize, 1024, 64))  # Not used, here to keep the code format
-    #stft = torch.zeros((batchsize, 1024, 512))  # Not used
-    #waveform = torch.zeros((batchsize, 160000))  # Not used
-    #fname = [""] * batchsize  # Not used
+
+    if(fbank is None):
+        fbank = torch.zeros((batchsize, 1024, 64))  # Not used, here to keep the code format
+    else:
+        fbank = torch.FloatTensor(fbank)
+        fbank = fbank.expand(batchsize, 1024, 64)
+        assert fbank.size(0) == batchsize
+        
+    stft = torch.zeros((batchsize, 1024, 512))  # Not used
+
+    if(waveform is None):
+        waveform = torch.zeros((batchsize, 160000))  # Not used
+    else:
+        waveform = torch.FloatTensor(waveform)
+        waveform = waveform.expand(batchsize, -1)
+        assert waveform.size(0) == batchsize
+        
+    fname = [""] * batchsize  # Not used
     
     batch = (
+        fbank,
+        stft,
+        None,
+        fname,
+        waveform,
         text_list,
     )
     return batch
@@ -137,7 +156,7 @@ def text_to_audio(
         waveform = read_wav_file(original_audio_file_path, int(duration * 102.4) * 160)
         
     if type(text) is list:
-        batch = auto_batch(text, waveform=waveform, batchsize=batchsize)
+        batch = auto_batch(text, waveform=waveform)
     else:
         batch = make_batch_for_text_to_audio(text, waveform=waveform, batchsize=batchsize)
 
